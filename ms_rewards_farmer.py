@@ -8,6 +8,7 @@ import time
 import urllib.parse
 from pathlib import Path
 from argparse import ArgumentParser
+import datetime as dt1
 from datetime import date, datetime, timedelta
 from typing import Union, List
 from notifiers import get_notifier
@@ -98,7 +99,7 @@ def isProxyWorking(proxy: str) -> bool:
     
 
 def wait():
-    currentHour = datetime.datetime.now(TZ).hour
+    currentHour = dt1.datetime.now().hour
     if not (currentHour >= START_TIME and currentHour < END_TIME):
         range = (START_TIME-currentHour) if (currentHour < START_TIME) else ((24 - currentHour) + START_TIME)
         time.sleep((range) * 3600)
@@ -1930,10 +1931,10 @@ def main():
         accountBrowser(ARGS.account_browser[0])
         input("Press Enter to close when you finished...")
         return None
-    run_at = None
-    if ARGS.start_at:
-        run_at = ARGS.start_at[0]
-    elif ARGS.everyday:
+    # run_at = None
+    # if ARGS.start_at:
+    #     run_at = ARGS.start_at[0]
+    if ARGS.everyday:
         while True:
             wait()
             hours = random.randint(3, 8)
