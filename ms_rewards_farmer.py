@@ -1789,9 +1789,10 @@ def prPurple(prt):
 
 def loadAccounts():
     global ACCOUNTS
-    if ARGS.accounts:
+    ACC_ENV = os.environ.get('ACCOUNTS', None).split(' ')
+    if ACC_ENV:
         ACCOUNTS = []
-        for account in ARGS.accounts:
+        for account in ACC_ENV:
             ACCOUNTS.append({"username": account.split(":")[0], "password": account.split(":")[1]})
     else:
         try:
