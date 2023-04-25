@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
   wget \
   gpg \
   python3 \
+  python3-tk \
   python3-pip \
   xvfb \
   xfonts-cyrillic \

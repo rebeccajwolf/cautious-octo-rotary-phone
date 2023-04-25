@@ -1,4 +1,4 @@
 #!/bin/bash
-exec gunicorn keep_alive:app --bind 0.0.0.0:8080 &
 sh ./clean_mem.sh ;
-python3 ms_rewards_farmer.py --everyday --fast --headless --telegram "${TOKEN}" "${CHAT_ID}" ;
+exec gunicorn keep_alive:app --bind 0.0.0.0:8080 &
+python3 ms_rewards_farmer.py --everyday --privacy --error --fast --telegram --dont-check-for-updates --currency INR --dont-check-internet;
