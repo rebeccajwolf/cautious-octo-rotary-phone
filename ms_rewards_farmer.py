@@ -2921,6 +2921,8 @@ def main():
     #                 break
     #         time.sleep(30)
     if ARGS.everyday:
+        logs()
+        farmer()
         while True:
             if not ARGS.dont_check_for_updates:
                 update_handler(version)
