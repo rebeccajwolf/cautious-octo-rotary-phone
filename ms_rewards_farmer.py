@@ -164,6 +164,7 @@ def browserSetup(isMobile: bool, user_agent: str = PC_USER_AGENT, proxy: str = N
             if ARGS.recheck_proxy:
                 prYellow(
                     "[PROXY] Your entered proxy is not working, rechecking the provided proxy.")
+                time.sleep(5)
                 if isProxyWorking(proxy):
                     options.add_argument(f'--proxy-server={proxy}')
                     prBlue(f"Using proxy: {proxy}")
@@ -201,6 +202,15 @@ def browserSetup(isMobile: bool, user_agent: str = PC_USER_AGENT, proxy: str = N
 @retry_on_500_errors
 def goToURL(browser: WebDriver, url: str):
     browser.get(url)
+
+
+def displayError(exc: Exception):
+    """Display error message with traceback"""
+    if ERROR:
+        tb = exc.__traceback__
+        tb_str = traceback.format_tb(tb)
+        error = "\n".join(tb_str).strip() + f"\n{exc}"
+        prRed(error)
 
 
 # Define login function
@@ -331,6 +341,7 @@ def login(browser: WebDriver, email: str, pwd: str, totpSecret: str, isMobile: b
     # Wait complete loading
     waitUntilVisible(browser, By.ID, 'loginHeader', 10)
     # Enter password
+    time.sleep(3)
     browser.find_element(By.ID, "i0118").send_keys(pwd)
     # browser.execute_script("document.getElementById('i0118').value = '" + pwd + "';")
     print('[LOGIN]', 'Writing password...')
@@ -364,7 +375,7 @@ def login(browser: WebDriver, email: str, pwd: str, totpSecret: str, isMobile: b
         if (
             browser.title == "Your account has been temporarily suspended" or
             isElementExists(browser, By.CLASS_NAME, "serviceAbusePageContainer  PageContainer") or
-		    browser.current_url.startswith("https://account.live.com/Abuse")
+            browser.current_url.startswith("https://account.live.com/Abuse")
         ):
             raise AccountLockedException
         elif browser.title == "Help us protect your account" or \
@@ -859,24 +870,19 @@ def bingSearches(browser: WebDriver, numberOfSearches: int, isMobile: bool = Fal
 
     global POINTS_COUNTER  # pylint: disable=global-statement
     i = 0
-    r = RandomWords()
     try:
-        search_terms = r.get_random_words(limit=numberOfSearches)
+        words = open("searchwords.txt", "r").read().splitlines()
+        search_terms = random.sample(words, numberOfSearches)
         if search_terms is None:
             raise Exception
     except Exception:
         search_terms = getGoogleTrends(numberOfSearches)
         if len(search_terms) == 0:
-            try:
-                words = open(
-                    f"{Path.cwd().resolve()}/searchwords.txt", "r").read().splitlines()
-                search_terms = random.sample(words, numberOfSearches)
-            except:
-                prRed('[ERROR] No search terms found, account skipped.')
-                finishedAccount()
-                cleanLogs()
-                updateLogs()
-                raise Exception()
+            prRed('[ERROR] No search terms found, account skipped.')
+            finishedAccount()
+            cleanLogs()
+            updateLogs()
+            raise Exception()
     for word in search_terms:
         i += 1
         print(f'[BING] {i}/{numberOfSearches}', end="\r")
@@ -1158,8 +1164,7 @@ def completeDailySet(browser: WebDriver):
                                 '[DAILY SET]', 'Completing quiz of card ' + str(cardNumber))
                             completeDailySetVariableActivity(cardNumber)
         except Exception as exc:
-            if ERROR:
-                prRed(str(exc))
+            displayError(exc)
             error = True
             resetTabs(browser)
     if not error:
@@ -1269,8 +1274,7 @@ def completePunchCards(browser: WebDriver):
                 url = punchCard['parentPromotion']['attributes']['destination']
                 completePunchCard(url, punchCard['childPromotions'])
         except Exception as exc:
-            if ERROR:
-                prRed(str(exc))
+            displayError(exc)
             resetTabs(browser)
     time.sleep(2)
     goToURL(browser, BASE_URL)
@@ -1465,8 +1469,7 @@ def completeMorePromotions(browser: WebDriver):
                     and promotion['destinationUrl'] == BASE_URL:
                 completeMorePromotionSearch(i)
         except Exception as exc:
-            if ERROR:
-                prRed(str(exc))
+            displayError(exc)
             resetTabs(browser)
 
     completePromotionalItems()
@@ -1574,7 +1577,7 @@ def completeMSNShoppingGame(browser: WebDriver) -> bool:
             By.TAG_NAME, 'button').click()
 
     try:
-        if ARGS.headless and platform.system() == "Linux":
+        if (ARGS.headless or ARGS.virtual_display) and platform.system() == "Linux":
             browser.set_window_size(1920, 1080)
         tries = 0
         print("[MSN GAME] Trying to complete MSN shopping game...")
@@ -1622,8 +1625,7 @@ def completeMSNShoppingGame(browser: WebDriver) -> bool:
         prYellow("[MSN GAME] Failed to locate MSN shopping game !")
         finished = False
     except Exception as exc:  # skipcq
-        if ERROR:
-            prRed(str(exc))
+        displayError(exc)
         prYellow("[MSN GAME] Failed to complete MSN shopping game !")
         finished = False
     else:
@@ -2150,7 +2152,7 @@ def sendToDiscord(message):
         content = {"username": "⭐️ Microsoft Rewards Bot ⭐️",
                    "content": message}
         response = requests.post(webhook_url, json=content)
-    if not ARGS.print_to_webhook: # this is to prevent infinite loop
+    if not ARGS.print_to_webhook:  # this is to prevent infinite loop
         if response.status_code == 204:
             prGreen("[LOGS] Report sent to Discord.\n")
         else:
@@ -2236,7 +2238,7 @@ def setRedeemGoal(browser: WebDriver, goal: str):
 
     except (NoSuchElementException, ElementClickInterceptedException) as exc:
         prRed("[GOAL SETTER] Ran into an exception trying to redeem!")
-        prRed(str(exc))
+        displayError(exc)
         return
     finally:
         goToURL(browser, BASE_URL)
@@ -2862,8 +2864,8 @@ def farmer():
         if "executable needs to be in PATH" in str(e):
             prRed('[ERROR] WebDriver not found.\n')
             prRed(str(e))
-        if ARGS.error:
-            traceback.print_exc()
+            os._exit(0)
+        displayError(e)
         print('\n')
         ERROR = True
         if browser is not None:
@@ -2973,7 +2975,7 @@ def get_version():
         with open(VERSION_PATH, 'r') as version_json:
             return json.load(version_json)['version']
     except Exception as exc:  # skipcq
-        prRed(exc if ERROR else "")
+        displayError(exc)
         return "Unknown"
 
 
@@ -2983,11 +2985,10 @@ if __name__ == '__main__':
     ARGS = argumentParser()
     def print(*args, **kwargs):
         if ARGS.print_to_webhook and (ARGS.telegram or ARGS.discord):
-            sendReportToMessenger("```" + " ".join(args)+ " ```")
+            sendReportToMessenger("```" + " ".join(args) + " ```")
         return builtins.print(*args, **kwargs)
-    
+
     try:
         main()
     except Exception as e:
-        traceback.print_exc()
-        prRed(str(e))
+        displayError(e)
