@@ -44,8 +44,8 @@ from exceptions import *
 
 
 # Define user-agents
-PC_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61'
-MOBILE_USER_AGENT = 'Mozilla/5.0 (Linux; Android 12; SM-N9750) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Mobile Safari/537.36 EdgA/109.0.1518.53'
+PC_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/110.0.1587.69'
+MOBILE_USER_AGENT = 'Mozilla/5.0 (Linux; Android 12; SM-N9750) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.5563.57 Mobile Safari/537.36 EdgA/110.0.1587.66'
 
 POINTS_COUNTER = 0
 
@@ -60,9 +60,9 @@ LOGS = {}  # Dictionary of accounts to write in 'logs_accounts.txt'.
 FAST = False  # When this variable set True then all possible delays reduced.
 SUPER_FAST = False  # fast but super
 BASE_URL = "https://rewards.bing.com/"
-START_TIME = float(4)
-END_TIME = float(12)
-LOGIN_URL = os.environ.get("URL", "https://login.live.com/")
+START_TIME = float(5)
+END_TIME = float(13)
+LOGIN_URL = os.environ.get("URL", "https://login.live.com/login.srf")
 
 # Auto Redeem - Define max amount of auto-redeems per run and counter
 MAX_REDEEMS = 1
